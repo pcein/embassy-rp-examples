@@ -11,6 +11,7 @@ use panic_probe as _;
 
 const FAST_BLINK_DELAY_MS: u32 = 50;
 const SLOW_BLINK_DELAY_MS: u32 = 500;
+const DEBOUNCE_DELAY_MS: u64 = 20;
 static BLINK_DELAY_MS: AtomicU32 = AtomicU32::new(SLOW_BLINK_DELAY_MS);
 
 #[embassy_executor::main]
@@ -43,7 +44,7 @@ async fn button_task(mut button: Input<'static>) {
 
     loop {
         button.wait_for_falling_edge().await;
-        Timer::after(Duration::from_millis(10)).await;
+        Timer::after(Duration::from_millis(DEBOUNCE_DELAY_MS)).await;
         if button.is_high() {
             continue;
         }
