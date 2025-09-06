@@ -1,5 +1,4 @@
-// ADC demo. GP29 is ADC input. On Pico board, this
-// is connected to VSYS (through a voltage divider).
+// ADC demo. GP26 is ADC input.
 #![no_std]
 #![no_main]
 
@@ -23,11 +22,17 @@ async fn main(_spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
     let mut adc = Adc::new(p.ADC, Irqs, Config::default());
 
-    let mut p29 = Channel::new_pin(p.PIN_29, Pull::None);
+    // Connect GP26 to GND. ADC reading may not be 0 - the reading
+    // will show some GND offset (looks like there are some bugs in
+    // the rp2040 adc implmentation). I was getting a reading less
+    // than or equal to 14.
+    //
+    // Connect GP26 to 3v3(OUT), ADC read should return 4095.
+    let mut p26 = Channel::new_pin(p.PIN_26, Pull::None);
 
     loop {
-        let level = adc.read(&mut p29).await.unwrap();
-        info!("Pin 29 ADC: {}", level);
+        let level = adc.read(&mut p26).await.unwrap();
+        info!("Pin 26 ADC: {}", level);
         Timer::after_secs(1).await;
     }
 }
